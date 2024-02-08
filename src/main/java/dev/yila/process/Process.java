@@ -22,9 +22,7 @@ public class Process<T> {
     }
 
     public <F extends Failure> Result<T, F> send(Function<T, T> function) {
-        var future = new CompletableFuture<T>();
-        this.runningProcess.addFunction(function, future::complete);
-        return LazyResult.create(future::join);
+        return this.runningProcess.addFunction(function);
     }
 
     public <F extends Failure> Result<T, F> value() {

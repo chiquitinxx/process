@@ -1,10 +1,13 @@
 package dev.yila.process;
 
+import dev.yila.functional.LazyResult;
 import dev.yila.functional.Pair;
+import dev.yila.functional.Result;
+import dev.yila.functional.failure.Failure;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 class RunningProcess<T> implements Runnable {
@@ -17,7 +20,7 @@ class RunningProcess<T> implements Runnable {
 
     private T value;
     private boolean running = true;
-    private final BlockingQueue<Pair<Function<T, T>, Consumer<T>>> queue;
+    private final BlockingQueue<Pair<Function<T, T>, CompletableFuture<T>>> queue;
 
     private RunningProcess(T value) {
         this.value = value;
@@ -26,24 +29,30 @@ class RunningProcess<T> implements Runnable {
 
     @Override
     public void run() {
-        while (running) {
-            if (!queue.isEmpty()) {
-                var pair = queue.remove();
-                this.value = pair.getLeft().apply(this.value);
-                pair.getRight().accept(this.value);
+        while (this.running) {
+            if (!this.queue.isEmpty()) {
+                var pair = this.queue.remove();
+                try {
+                    this.value = pair.getLeft().apply(this.value);
+                    pair.getRight().complete(this.value);
+                } catch (RuntimeException runtimeException) {
+                    pair.getRight().completeExceptionally(runtimeException);
+                }
             }
         }
     }
 
-    protected void addFunction(Function<T, T> function, Consumer<T> callback) {
-        this.queue.add(new Pair<>(function, callback));
+    protected <F extends Failure> Result<T, F> addFunction(Function<T, T> function) {
+        var future = new CompletableFuture<T>();
+        this.queue.add(new Pair<>(function, future));
+        return LazyResult.create(future::join);
     }
 
     protected T value() {
-        return value;
+        return this.value;
     }
 
     protected void stop() {
-        running = false;
+        this.running = false;
     }
 }
