@@ -2,6 +2,7 @@ package dev.yila.process;
 
 import dev.yila.functional.AsyncResult;
 import dev.yila.functional.DirectResult;
+import dev.yila.functional.LazyResult;
 import dev.yila.functional.Result;
 import dev.yila.functional.failure.Failure;
 
@@ -20,17 +21,18 @@ public class Process<T> {
         this.runningProcess = runningProcess;
     }
 
-    protected RunningProcess<T> running() {
-        return this.runningProcess;
-    }
-
     public <F extends Failure> Result<T, F> send(Function<T, T> function) {
         var future = new CompletableFuture<T>();
-        this.running().addFunction(function, future::complete);
-        return AsyncResult.create(future);
+        this.runningProcess.addFunction(function, future::complete);
+        return LazyResult.create(future::join);
     }
 
     public <F extends Failure> Result<T, F> value() {
-        return DirectResult.ok(running().value());
+        return DirectResult.ok(runningProcess.value());
+    }
+
+    public Result<T, ? extends Failure> stop() {
+        runningProcess.stop();
+        return DirectResult.ok(runningProcess.value());
     }
 }

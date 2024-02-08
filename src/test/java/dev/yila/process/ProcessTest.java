@@ -39,4 +39,13 @@ public class ProcessTest {
 
         await().until(() -> process.value().getOrThrow() == 100_000);
     }
+
+    @Test
+    void startAndStop() {
+        var process = Process.create(21);
+
+        var result = process.stop();
+
+        assertEquals(21, result.getOrThrow());
+    }
 }

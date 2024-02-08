@@ -7,15 +7,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RunningProcess<T> implements Runnable {
+class RunningProcess<T> implements Runnable {
 
-    static <T> RunningProcess<T> start(T initialValue) {
+    protected static <T> RunningProcess<T> start(T initialValue) {
         var running = new RunningProcess<>(initialValue);
         Thread.ofVirtual().start(running);
         return running;
     }
 
     private T value;
+    private boolean running = true;
     private final BlockingQueue<Pair<Function<T, T>, Consumer<T>>> queue;
 
     private RunningProcess(T value) {
@@ -25,7 +26,7 @@ public class RunningProcess<T> implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             if (!queue.isEmpty()) {
                 var pair = queue.remove();
                 this.value = pair.getLeft().apply(this.value);
@@ -40,5 +41,9 @@ public class RunningProcess<T> implements Runnable {
 
     protected T value() {
         return value;
+    }
+
+    protected void stop() {
+        running = false;
     }
 }
