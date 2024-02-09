@@ -5,7 +5,7 @@ import dev.yila.functional.Pair;
 import dev.yila.functional.Result;
 import dev.yila.functional.failure.Failure;
 
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
@@ -20,7 +20,7 @@ class RunningProcess<T> implements Runnable {
 
     private T value;
     private boolean running = true;
-    private final BlockingQueue<Pair<Function<T, T>, CompletableFuture<T>>> queue;
+    private final Queue<Pair<Function<T, T>, CompletableFuture<T>>> queue;
 
     private RunningProcess(T value) {
         this.value = value;
