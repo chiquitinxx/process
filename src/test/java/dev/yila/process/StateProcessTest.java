@@ -40,6 +40,7 @@ public class StateProcessTest {
         }
 
         await().until(() -> process.value().getOrThrow() == 100_000);
+        process.stop();
     }
 
     @Test
