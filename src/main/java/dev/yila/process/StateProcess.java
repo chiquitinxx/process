@@ -8,13 +8,13 @@ import java.util.function.Function;
 
 public class StateProcess<T> {
     public static <T> StateProcess<T> create(T initialValue) {
-        var running = RunningProcess.start(initialValue);
+        var running = RunningStateProcess.start(initialValue);
         return new StateProcess<>(running);
     }
 
-    private final RunningProcess<T> runningProcess;
+    private final RunningStateProcess<T> runningProcess;
 
-    private StateProcess(RunningProcess<T> runningProcess) {
+    private StateProcess(RunningStateProcess<T> runningProcess) {
         this.runningProcess = runningProcess;
     }
 

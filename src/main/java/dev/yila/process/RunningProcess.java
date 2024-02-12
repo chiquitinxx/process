@@ -1,29 +1,23 @@
 package dev.yila.process;
 
-import dev.yila.functional.LazyResult;
 import dev.yila.functional.Pair;
-import dev.yila.functional.Result;
-import dev.yila.functional.failure.Failure;
 
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
-class RunningProcess<T> implements Runnable {
+class RunningProcess implements Runnable {
 
-    protected static <T> RunningProcess<T> start(T initialValue) {
-        var running = new RunningProcess<>(initialValue);
+    protected static RunningProcess start() {
+        var running = new RunningProcess();
         Thread.ofVirtual().start(running);
         return running;
     }
 
-    private T value;
     private boolean running = true;
-    private final Queue<Pair<Function<T, T>, CompletableFuture<T>>> queue;
+    private final Queue<Pair<Runnable, Consumer<RuntimeException>>> queue;
 
-    private RunningProcess(T value) {
-        this.value = value;
+    private RunningProcess() {
         this.queue = new LinkedBlockingQueue<>();
     }
 
@@ -33,23 +27,16 @@ class RunningProcess<T> implements Runnable {
             if (!this.queue.isEmpty()) {
                 var pair = this.queue.remove();
                 try {
-                    this.value = pair.getLeft().apply(this.value);
-                    pair.getRight().complete(this.value);
+                    pair.getLeft().run();
                 } catch (RuntimeException runtimeException) {
-                    pair.getRight().completeExceptionally(runtimeException);
+                    pair.getRight().accept(runtimeException);
                 }
             }
         }
     }
 
-    protected <F extends Failure> Result<T, F> addFunction(Function<T, T> function) {
-        var future = new CompletableFuture<T>();
-        this.queue.add(new Pair<>(function, future));
-        return LazyResult.create(future::join);
-    }
-
-    protected T value() {
-        return this.value;
+    protected void send(Runnable runnable, Consumer<RuntimeException> onException) {
+        this.queue.add(Pair.of(runnable, onException));
     }
 
     protected void stop() {
