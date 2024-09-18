@@ -51,7 +51,7 @@
     <plugin.compile>3.12.1</plugin.compile>
     <junit.jupiter>5.10.2</junit.jupiter>
     <maven.jacoco.plugin>0.8.11</maven.jacoco.plugin>
-    <yila.functional>0.9-SNAPSHOT</yila.functional>
+    <yila.functional>0.9</yila.functional>
   </properties>
 
   <dependencies>
