@@ -3,6 +3,10 @@ package dev.yila.process;
 import java.util.function.Consumer;
 
 public class Process {
+
+    private static final Consumer<RuntimeException> DEFAULT_RUNTIME_EXCEPTION_CONSUMER =
+            Throwable::printStackTrace;
+
     public static Process create() {
         var running = RunningProcess.start();
         return new Process(running);
@@ -15,12 +19,10 @@ public class Process {
     }
 
     public void send(Runnable runnable) {
-        this.send(runnable, re -> {
-            //Nothing to do? just hide?
-        });
+        this.send(CheckedRunnable.from(runnable), DEFAULT_RUNTIME_EXCEPTION_CONSUMER);
     }
 
-    public void send(Runnable runnable, Consumer<RuntimeException> consumer) {
+    public <T extends Throwable> void send(CheckedRunnable<T> runnable, Consumer<T> consumer) {
         runningProcess.send(runnable, consumer);
     }
 

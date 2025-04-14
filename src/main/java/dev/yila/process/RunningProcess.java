@@ -15,7 +15,7 @@ class RunningProcess implements Runnable {
     }
 
     private boolean running = true;
-    private final Queue<Pair<Runnable, Consumer<RuntimeException>>> queue;
+    private final Queue<Pair<CheckedRunnable, Consumer>> queue;
 
     private RunningProcess() {
         this.queue = new LinkedBlockingQueue<>();
@@ -28,14 +28,14 @@ class RunningProcess implements Runnable {
                 var pair = this.queue.remove();
                 try {
                     pair.getLeft().run();
-                } catch (RuntimeException runtimeException) {
-                    pair.getRight().accept(runtimeException);
+                } catch (Throwable t) {
+                    pair.getRight().accept(t);
                 }
             }
         }
     }
 
-    protected void send(Runnable runnable, Consumer<RuntimeException> onException) {
+    protected <T extends Throwable> void send(CheckedRunnable<T> runnable, Consumer<T> onException) {
         this.queue.add(Pair.of(runnable, onException));
     }
 

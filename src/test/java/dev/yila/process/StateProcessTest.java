@@ -3,10 +3,10 @@ package dev.yila.process;
 import org.junit.jupiter.api.Test;
 
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StateProcessTest {
 
@@ -89,5 +89,22 @@ public class StateProcessTest {
 
         assertSame(runtimeException, lastResult.failure().get().toThrowable());
         assertEquals(150, result.getOrThrow());
+    }
+
+    @Test
+    void applyInOrder() {
+        var process = StateProcess.create(100_000);
+        var atomic = new AtomicInteger(100_000);
+
+        for (int i = 0; i < 100_000; i++) {
+            Thread.startVirtualThread(() -> process.apply(prev -> {
+                assertEquals(prev, atomic.get());
+                atomic.decrementAndGet();
+                return prev - 1;
+            }));
+        }
+
+        await().until(() -> process.value().getOrThrow() == 0);
+        process.stop();
     }
 }

@@ -3,7 +3,6 @@ package dev.yila.process;
 import dev.yila.functional.DirectResult;
 import dev.yila.functional.LazyResult;
 import dev.yila.functional.Result;
-import dev.yila.functional.failure.Failure;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -22,7 +21,7 @@ public class StateProcess<T> {
         this.value = initialValue;
     }
 
-    public <F extends Failure> Result<T, F> apply(Function<T, T> function) {
+    public Result<T> apply(Function<T, T> function) {
         var future = new CompletableFuture<T>();
         this.runningProcess.send(() -> {
             value = function.apply(value);
@@ -31,11 +30,11 @@ public class StateProcess<T> {
         return LazyResult.create(future::join);
     }
 
-    public <F extends Failure> Result<T, F> value() {
+    public Result<T> value() {
         return DirectResult.ok(value);
     }
 
-    public Result<T, ? extends Failure> stop() {
+    public Result<T> stop() {
         runningProcess.stop();
         return DirectResult.ok(value);
     }
