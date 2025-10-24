@@ -50,6 +50,6 @@ public class InParallelTest {
         var millis = ChronoUnit.MILLIS.between(start, LocalDateTime.now());
 
         assertThat(millis).isLessThan(100);
-        assertEquals("one", failure.toThrowable().getCause().getMessage());
+        assertEquals("one", failure.toThrowable().getMessage());
     }
 }

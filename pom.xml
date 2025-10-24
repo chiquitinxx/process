@@ -44,16 +44,16 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>24</java.version>
+    <java.version>25</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <plugin.surefire>3.2.5</plugin.surefire>
-    <plugin.compile>3.12.1</plugin.compile>
-    <junit.jupiter>5.10.2</junit.jupiter>
-    <maven.jacoco.plugin>0.8.11</maven.jacoco.plugin>
-    <yila.functional>0.11</yila.functional>
-    <assertj.version>3.27.2</assertj.version>
-    <awaitility.version>4.2.0</awaitility.version>
+    <plugin.surefire>3.5.4</plugin.surefire>
+    <plugin.compile>3.14.1</plugin.compile>
+    <junit.jupiter>6.0.0</junit.jupiter>
+    <maven.jacoco.plugin>0.8.14</maven.jacoco.plugin>
+    <yila.functional>0.12-SNAPSHOT</yila.functional>
+    <assertj.version>3.27.6</assertj.version>
+    <awaitility.version>4.3.0</awaitility.version>
   </properties>
 
   <dependencies>
