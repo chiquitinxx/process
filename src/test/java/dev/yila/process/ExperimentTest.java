@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ExperimentTest {
@@ -45,5 +47,16 @@ public class ExperimentTest {
         while (!stack.isEmpty()) {
             Experiment.stop(stack.pop());
         }
+    }
+
+    @Test
+    public void sendOneMillionMessages() {
+        var atomic = new AtomicInteger(0);
+        var inc = new OnMessage("inc", (_) -> atomic.incrementAndGet());
+        var processId = Experiment.create(Set.of(inc));
+        for (int i = 0; i < 1_000_000; i++) {
+            Experiment.send(processId, "inc", null);
+        }
+        await().until(() -> 1_000_000 == atomic.get());
     }
 }
