@@ -59,4 +59,15 @@ public class ExperimentTest {
         }
         await().until(() -> 1_000_000 == atomic.get());
     }
+
+    @Test
+    public void exceptionReadingMessage() {
+        var error = new OnMessage("error", (_) -> {
+            throw new RuntimeException();
+        });
+        var processId = Experiment.create(Set.of(error));
+        Experiment.send(processId, "error", null);
+
+        await().until(() -> !Experiment.isAlive(processId));
+    }
 }

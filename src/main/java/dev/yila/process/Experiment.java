@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -55,12 +56,17 @@ public class Experiment {
         private final Queue<Pair<Message, CompletableFuture<?>>> queue;
         private final Thread thread;
         private boolean running = true;
+        private Consumer<Throwable> onThrowable = (_) -> {
+            this.running = false;
+        };
 
         AThread(Set<OnMessage> processors) {
             this.messageActions = processors.stream()
                     .collect(Collectors.toMap(OnMessage::name, o -> o));
             this.queue = new LinkedBlockingQueue<>();
-            this.thread = Thread.ofVirtual().start(this);
+            this.thread = Thread.ofVirtual().uncaughtExceptionHandler((thread, throwable) -> {
+                onThrowable.accept(throwable);
+            }).start(this);
         }
 
         Result<?> send(Message message) {
