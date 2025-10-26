@@ -49,7 +49,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <plugin.surefire>3.5.4</plugin.surefire>
     <plugin.compile>3.14.1</plugin.compile>
-    <junit.jupiter>6.0.0</junit.jupiter>
+    <junit.jupiter>5.14.0</junit.jupiter>
     <maven.jacoco.plugin>0.8.14</maven.jacoco.plugin>
     <yila.functional>0.12-SNAPSHOT</yila.functional>
     <assertj.version>3.27.6</assertj.version>

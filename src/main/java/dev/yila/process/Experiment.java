@@ -42,6 +42,11 @@ public class Experiment {
         return new ProcessId(UUID.randomUUID().toString());
     }
 
+    public static void stop(ProcessId processId) {
+        threads.get(processId).stop();
+        threads.remove(processId);
+    }
+
     record Message(String name, Object message) {}
 
     static class AThread implements Runnable {
@@ -49,6 +54,7 @@ public class Experiment {
         private final Map<String, OnMessage> messageActions;
         private final Queue<Pair<Message, CompletableFuture<?>>> queue;
         private final Thread thread;
+        private boolean running = true;
 
         AThread(Set<OnMessage> processors) {
             this.messageActions = processors.stream()
@@ -69,7 +75,7 @@ public class Experiment {
 
         @Override
         public void run() {
-            while (this.thread.isAlive()) {
+            while (this.running) {
                 if (!this.queue.isEmpty()) {
                     var pair = this.queue.remove();
                     Message message = pair.getLeft();
@@ -78,7 +84,13 @@ public class Experiment {
                     cf.complete(function.apply(message.message()));
                 }
             }
-            this.thread.interrupt();
+            if (this.thread != null) {
+                this.thread.interrupt();
+            }
+        }
+
+        public void stop() {
+            this.running = false;
         }
     }
 }
