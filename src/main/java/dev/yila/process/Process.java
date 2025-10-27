@@ -1,32 +1,46 @@
 package dev.yila.process;
 
-import java.util.function.Consumer;
+import dev.yila.functional.Result;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Process {
 
-    private static final Consumer<RuntimeException> DEFAULT_RUNTIME_EXCEPTION_CONSUMER =
-            Throwable::printStackTrace;
+    static Map<ProcessId, ProcessThread> threads = new ConcurrentHashMap<>();
 
-    public static Process create() {
-        var running = RunningProcess.start();
-        return new Process(running);
+    public static ProcessId create() {
+        return create(Set.of());
     }
 
-    private final RunningProcess runningProcess;
-
-    private Process(RunningProcess runningProcess) {
-        this.runningProcess = runningProcess;
+    public static boolean isAlive(ProcessId processId) {
+        return threads.get(processId).isAlive();
     }
 
-    public void send(Runnable runnable) {
-        this.send(CheckedRunnable.from(runnable), DEFAULT_RUNTIME_EXCEPTION_CONSUMER);
+    public static ProcessId create(Set<OnMessage> processors) {
+        var processId = generateNewProcessId();
+        var thread = new ProcessThread(processors);
+        threads.put(processId, thread);
+        return processId;
     }
 
-    public <T extends Throwable> void send(CheckedRunnable<T> runnable, Consumer<T> consumer) {
-        runningProcess.send(runnable, consumer);
+    public static Result send(ProcessId processId, String messageName, Object message) {
+        var thread = threads.get(processId);
+        return thread.send(new Message(messageName, message));
     }
 
-    public void stop() {
-        runningProcess.stop();
+    private static ProcessId generateNewProcessId() {
+        return new ProcessId(UUID.randomUUID().toString());
     }
+
+    public static void stop(ProcessId processId) {
+        threads.get(processId).stop();
+        threads.remove(processId);
+    }
+
+    public static String MESSAGE_SET_STATE = "setState";
+
+    record Message(String name, Object message) {}
 }
